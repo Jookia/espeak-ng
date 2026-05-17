@@ -10,5 +10,6 @@
 #cmakedefine01 USE_LIBSONIC
 #cmakedefine01 USE_MBROLA
 #cmakedefine01 USE_SPEECHPLAYER
+#cmakedefine01 USE_COMPILER
 
 #define PACKAGE_VERSION "${PROJECT_VERSION}"

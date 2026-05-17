@@ -48,6 +48,8 @@
 #include "voice.h"                    // for LoadVoice, voice
 #include "wavegen.h"                  // for WavegenInit, WavegenSetVoice
 
+#if USE_COMPILER
+
 static int CalculateSample(unsigned char c3, int c1);
 
 #define N_ITEM_STRING 256
@@ -2792,3 +2794,44 @@ static int CalculateSample(unsigned char c3, int c1) {
 
 	return (c1 & 0xff) + c2;
 }
+
+#else
+
+#pragma GCC visibility push(default)
+
+espeak_ng_STATUS
+espeak_ng_CompilePhonemeData(long rate,
+                             FILE *log,
+                             espeak_ng_ERROR_CONTEXT *context)
+{
+	return ENS_COMPILE_ERROR;
+}
+
+espeak_ng_STATUS
+espeak_ng_CompilePhonemeDataPath(long rate,
+                                 const char *source_path,
+                                 const char *destination_path,
+                                 FILE *log,
+                                 espeak_ng_ERROR_CONTEXT *context)
+{
+	return ENS_COMPILE_ERROR;
+}
+
+espeak_ng_STATUS espeak_ng_CompileIntonation(FILE *log, espeak_ng_ERROR_CONTEXT *context)
+{
+	return ENS_COMPILE_ERROR;
+}
+
+espeak_ng_STATUS
+espeak_ng_CompileIntonationPath(const char *source_path,
+                                const char *destination_path,
+                                FILE *log,
+                                espeak_ng_ERROR_CONTEXT *context
+                                )
+{
+	return ENS_COMPILE_ERROR;
+}
+
+#pragma GCC visibility pop
+
+#endif

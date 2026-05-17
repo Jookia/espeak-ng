@@ -42,6 +42,8 @@
 #include "speech.h"		// for path_home
 #include "synthesize.h"           // for Write4Bytes
 
+#if USE_COMPILER
+
 static const MNEM_TAB mnem_rules[] = {
 	{ "unpr",     DOLLAR_UNPR },
 	{ "noprefix", DOLLAR_NOPREFIX },  // rule fails if a prefix has been removed
@@ -1615,3 +1617,24 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 	return status;
 }
 #pragma GCC visibility pop
+
+#else
+
+void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
+{
+}
+
+char *DecodeRule(const char *group_chars, int group_length, char *rule, int control, char *output)
+{
+	output[0] = 0;
+	return output;
+}
+
+#pragma GCC visibility push(default)
+ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, const char *dict_name, FILE *log, int flags, espeak_ng_ERROR_CONTEXT *context)
+{
+	return ENS_COMPILE_ERROR;
+}
+#pragma GCC visibility pop
+
+#endif

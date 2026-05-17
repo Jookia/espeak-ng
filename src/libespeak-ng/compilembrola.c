@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#if USE_COMPILER
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -122,3 +124,5 @@ espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, e
 	return ENS_OK;
 }
 #pragma GCC visibility pop
+
+#endif

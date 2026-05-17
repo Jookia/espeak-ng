@@ -7,10 +7,20 @@ project(espeak-ng
 )
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(COMPILE_INTONATIONS "Intonation compilation" ON)
-option(ENABLE_TESTS "Enable tests" ON)
+option(COMPILE_INTONATIONS "Intonation compilation (requires data compiler)" ON)
+option(ENABLE_TESTS "Enable tests (requires data compiler)" ON)
 option(WITH_COVERAGE "Enable clang source-based coverage instrumentation" OFF)
 option(WITH_FUZZER "Build libFuzzer targets (requires Clang)" OFF)
+option(USE_COMPILER "Enable the data compiler" ON)
+
+if (NOT USE_COMPILER)
+  if (USE_TESTS)
+    message(FATAL_ERROR "Tests requires the data compiler!")
+  endif()
+  if (COMPILE_INTONATIONS)
+    message(FATAL_ERROR "Compiling intonations requires the data compiler!")
+  endif()
+endif()
 
 include(CTest)
 
@@ -64,6 +74,7 @@ message(STATUS "  libpcaudio: ${USE_LIBPCAUDIO} (${PCAUDIO_LIB} ${PCAUDIO_INC})"
 message(STATUS "  klatt: ${USE_KLATT}")
 message(STATUS "  speech-player: ${USE_SPEECHPLAYER}")
 message(STATUS "  async: ${USE_ASYNC}")
+message(STATUS "  compiler: ${USE_COMPILER}")
 
 install(
   DIRECTORY vim/ftdetect vim/syntax DESTINATION share/vim/vimfiles
