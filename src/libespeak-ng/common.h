@@ -45,8 +45,4 @@ ESPEAK_NG_API int utf8_in(int *c, const char *buf);
 int utf8_in2(int *c, const char *buf, int backwards);
 int utf8_out(unsigned int c, char *buf);
 
-#ifdef __cplusplus
-}
-#endif
-
 #endif // SPEECH_H
