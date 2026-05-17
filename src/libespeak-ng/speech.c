@@ -338,6 +338,9 @@ ESPEAK_NG_API void espeak_ng_InitializePath(const char *path)
 	strcpy(path_home, PATH_ESPEAK_DATA);
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 const int param_defaults[N_SPEECH_PARAM] = {
 	0,   // silence (internal use)
 	espeakRATE_NORMAL, // rate wpm
