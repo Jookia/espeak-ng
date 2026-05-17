@@ -38,3 +38,6 @@ if (ESPEAK_COMPAT AND NOT WIN32)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/espeak DESTINATION bin)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/speak DESTINATION bin)
 endif()
+
+add_custom_target(microsrc ${CMAKE_SOURCE_DIR}/tools/microsrc.py
+  "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/microsrc" "${PROJECT_VERSION}")
