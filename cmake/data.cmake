@@ -174,3 +174,7 @@ add_custom_target(
     ${_mbr_targets}
 )
 install(DIRECTORY ${DATA_DIST_DIR} DESTINATION share)
+
+add_custom_target(data_bundle ${CMAKE_SOURCE_DIR}/tools/bundle.py
+  "${DATA_DIST_DIR}" "${CMAKE_BINARY_DIR}/data.bundle"
+  DEPENDS data)
