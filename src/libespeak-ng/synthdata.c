@@ -52,10 +52,10 @@ int n_phoneme_tab;
 static int current_phoneme_table;
 PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
-static unsigned short *phoneme_index = NULL;
-static char *phondata_ptr = NULL;
+static const unsigned short *phoneme_index = NULL;
+static const char *phondata_ptr = NULL;
 unsigned char *wavefile_data = NULL;
-static unsigned char *phoneme_tab_data = NULL;
+static const unsigned char *phoneme_tab_data = NULL;
 
 static int n_phoneme_tables;
 PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
@@ -63,7 +63,7 @@ int phoneme_tab_number = 0;
 
 int seq_len_adjust;
 
-static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
+static espeak_ng_STATUS ReadPhFile(const void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
 {
 	if (!ptr) return EINVAL;
 
@@ -80,7 +80,7 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 		return create_file_error_context(context, errno, buf);
 
 	if (*ptr != NULL) {
-		free(*ptr);
+		free((void*)*ptr);
 		*ptr = NULL;
 	}
 	
@@ -93,10 +93,10 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 		fclose(f_in);
 		return ENOMEM;
 	}
-	if (fread(*ptr, 1, length, f_in) != length) {
+	if (fread((char*)*ptr, 1, length, f_in) != length) {
 		int error = errno;
 		fclose(f_in);
-		free(*ptr);
+		free((void*)*ptr);
 		*ptr = NULL;
 		return create_file_error_context(context, error, buf);
 	}
@@ -113,16 +113,16 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 	int version;
 	int length = 0;
 	int rate;
-	unsigned char *p;
+	const unsigned char *p;
 
 	espeak_ng_STATUS status;
-	if ((status = ReadPhFile((void **)&phoneme_tab_data, "phontab", NULL, context)) != ENS_OK)
+	if ((status = ReadPhFile((const void **)&phoneme_tab_data, "phontab", NULL, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&phoneme_index, "phonindex", NULL, context)) != ENS_OK)
+	if ((status = ReadPhFile((const void **)&phoneme_index, "phonindex", NULL, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&phondata_ptr, "phondata", NULL, context)) != ENS_OK)
+	if ((status = ReadPhFile((const void **)&phondata_ptr, "phondata", NULL, context)) != ENS_OK)
 		return status;
-	if ((status = ReadPhFile((void **)&tunes, "intonations", &length, context)) != ENS_OK)
+	if ((status = ReadPhFile((const void **)&tunes, "intonations", &length, context)) != ENS_OK)
 		return status;
 	wavefile_data = (unsigned char *)phondata_ptr;
 	n_tunes = length / sizeof(TUNE);
@@ -166,10 +166,10 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 
 void FreePhData(void)
 {
-	free(phoneme_tab_data);
-	free(phoneme_index);
-	free(phondata_ptr);
-	free(tunes);
+	free((void*)phoneme_tab_data);
+	free((void*)phoneme_index);
+	free((void*)phondata_ptr);
+	free((void*)tunes);
 	phoneme_tab_data = NULL;
 	phoneme_index = NULL;
 	phondata_ptr = NULL;
@@ -465,7 +465,7 @@ static int CountVowelPosition(PHONEME_LIST *plist, PHONEME_LIST *plist_start)
 	return count;
 }
 
-static bool InterpretCondition(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_LIST *plist_start, unsigned short *p_prog, WORD_PH_DATA *worddata)
+static bool InterpretCondition(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_LIST *plist_start, const unsigned short *p_prog, WORD_PH_DATA *worddata)
 {
 	unsigned int data;
 	int instn;
@@ -670,7 +670,7 @@ static bool InterpretCondition(Translator *tr, int control, PHONEME_LIST *plist,
 	return false;
 }
 
-static void SwitchOnVowelType(PHONEME_LIST *plist, PHONEME_DATA *phdata, unsigned short **p_prog, int instn_type)
+static void SwitchOnVowelType(PHONEME_LIST *plist, PHONEME_DATA *phdata, const unsigned short **p_prog, int instn_type)
 {
 	int voweltype;
 
@@ -683,7 +683,7 @@ static void SwitchOnVowelType(PHONEME_LIST *plist, PHONEME_DATA *phdata, unsigne
 
 	voweltype -= phonVOWELTYPES;
 	if ((voweltype >= 0) && (voweltype < 6)) {
-		unsigned short *prog;
+		const unsigned short *prog;
 		signed char x;
 
 		prog = *p_prog + voweltype*2;
@@ -695,7 +695,7 @@ static void SwitchOnVowelType(PHONEME_LIST *plist, PHONEME_DATA *phdata, unsigne
 	*p_prog += 12;
 }
 
-static int NumInstnWords(unsigned short *prog)
+static int NumInstnWords(const unsigned short *prog)
 {
 	int instn;
 	int instn2;
@@ -748,7 +748,7 @@ void InterpretPhoneme(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_
 	// bit 8:  change phonemes
 
 	PHONEME_TAB *ph;
-	unsigned short *prog;
+	const unsigned short *prog;
 	int or_flag;
 	bool truth;
 	bool truth2;
@@ -759,7 +759,7 @@ void InterpretPhoneme(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_
 
 	#define N_RETURN 10
 	int n_return = 0;
-	unsigned short *return_addr[N_RETURN]; // return address stack
+	const unsigned short *return_addr[N_RETURN]; // return address stack
 
 	ph = plist->ph;
 
