@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#if USE_MBROLA
+
 /* FIXME: we should be able to run several mbrola processes,
  * in case we switch between languages within a synthesis. */
 
@@ -696,4 +698,5 @@ void unload_MBR(void)
 {
 }
 
+#endif
 #endif
