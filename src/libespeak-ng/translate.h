@@ -572,17 +572,17 @@ typedef struct {
 	#define PUNCT_INTONATIONS 6
 	unsigned char punct_to_tone[INTONATION_TYPES][PUNCT_INTONATIONS];
 
-	char *data_dictrules;     // language_1   translation rules file
-	char *data_dictlist;      // language_2   dictionary lookup file
-	char *dict_hashtab[N_HASH_DICT];   // hash table to index dictionary lookup file
-	char *letterGroups[N_LETTER_GROUPS];
+	const char *data_dictrules;     // language_1   translation rules file
+	const char *data_dictlist;      // language_2   dictionary lookup file
+	const char *dict_hashtab[N_HASH_DICT];   // hash table to index dictionary lookup file
+	const char *letterGroups[N_LETTER_GROUPS];
 
 	// groups1 and groups2 are indexes into data_dictrules, set up by InitGroups()
 	// the two-letter rules for each letter must be consecutive in the language_rules source
 
-	char *groups1[256];         // translation rule lists, index by single letter
-	char *groups3[128];         // index by offset letter
-	char *groups2[N_RULE_GROUP2];   // translation rule lists, indexed by two-letter pairs
+	const char *groups1[256];         // translation rule lists, index by single letter
+	const char *groups3[128];         // index by offset letter
+	const char *groups2[N_RULE_GROUP2];   // translation rule lists, indexed by two-letter pairs
 	unsigned int groups2_name[N_RULE_GROUP2];  // the two letter pairs for groups2[]
 	int n_groups2;              // number of groups2[] entries used
 

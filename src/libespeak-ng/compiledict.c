@@ -234,7 +234,7 @@ void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
 	}
 }
 
-char *DecodeRule(const char *group_chars, int group_length, char *rule, int control, char *output)
+char *DecodeRule(const char *group_chars, int group_length, const char *rule, int control, char *output)
 {
 	// Convert compiled match template to ascii
 
@@ -1624,7 +1624,7 @@ void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
 {
 }
 
-char *DecodeRule(const char *group_chars, int group_length, char *rule, int control, char *output)
+char *DecodeRule(const char *group_chars, int group_length, const char *rule, int control, char *output)
 {
 	output[0] = 0;
 	return output;

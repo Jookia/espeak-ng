@@ -117,8 +117,8 @@ static void InitGroups(Translator *tr)
 	// for single-letters and two-letter combinations
 
 	int ix;
-	char *p;
-	char *p_name;
+	const char *p;
+	const char *p_name;
 	unsigned char c, c2;
 	int len;
 
@@ -196,7 +196,7 @@ static void InitGroups(Translator *tr)
 int LoadDictionary(Translator *tr, const char *name, int no_error)
 {
 	int hash;
-	char *p;
+	const char *p;
 	int *pw;
 	int length;
 	FILE *f;
@@ -215,7 +215,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	size = GetFileLength(fname);
 
 	if (tr->data_dictlist != NULL) {
-		free(tr->data_dictlist);
+		free((void*)tr->data_dictlist);
 		tr->data_dictlist = NULL;
 	}
 
@@ -232,7 +232,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 		fclose(f);
 		return 3;
 	}
-	size = fread(tr->data_dictlist, 1, size, f);
+	size = fread((char*)tr->data_dictlist, 1, size, f);
 	fclose(f);
 
 	pw = (int *)(tr->data_dictlist);
@@ -687,7 +687,7 @@ const char *GetTranslatedPhonemeString(int phoneme_mode)
 	return phon_out_buf;
 }
 
-static int LetterGroupNo(char *rule)
+static int LetterGroupNo(const char *rule)
 {
 	/*
 	 * Returns number of letter group
@@ -721,7 +721,7 @@ static int IsLetterGroup(Translator *tr, char *word, int group, int pre)
 	 *     pre==1 — pre-rule
 	 *     pre==0 — post-rule
 	 */
-	char *p; // group counter
+	const char *p; // group counter
 	char *w; // word counter
 	int len = 0, i;
 
@@ -1485,7 +1485,7 @@ void AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
 		strcat(string, ph);
 }
 
-static void MatchRule(Translator *tr, char *word[], char *word_start, int group_length, char *rule, MatchRecord *match_out, int word_flags, int dict_flags)
+static void MatchRule(Translator *tr, char *word[], char *word_start, int group_length, const char *rule, MatchRecord *match_out, int word_flags, int dict_flags)
 {
 	/* Checks a specified word against dictionary rules.
 	    Returns with phoneme code string, or NULL if no match found.
@@ -1511,7 +1511,7 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 	char *pre_ptr;
 	char *post_ptr;       // pointer to first character after group
 
-	char *rule_start;     // start of current match template
+	const char *rule_start;     // start of current match template
 	char *p;
 	int match_type;       // left, right, or consume
 	int syllable_count;
@@ -1528,7 +1528,7 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 	int total_consumed; // letters consumed for best match
 
 	unsigned char condition_num;
-	char *common_phonemes; // common to a group of entries
+	const char *common_phonemes; // common to a group of entries
 	char *group_chars;
 	char word_buf[N_WORD_BYTES];
 
@@ -2434,8 +2434,8 @@ int TransposeAlphabet(Translator *tr, char *text)
 static const char *LookupDict2(Translator *tr, const char *word, const char *word2,
                                char *phonetic, unsigned int *flags, int end_flags, WORD_TAB *wtab)
 {
-	char *p;
-	char *next;
+	const char *p;
+	const char *next;
 	int hash;
 	int phoneme_len;
 	int wlen;

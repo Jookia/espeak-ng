@@ -28,7 +28,7 @@ extern "C"
 
 char *DecodeRule(const char *group_chars, 
 		int group_length,
-		char *rule,
+		const char *rule,
 		int control,
 		char *output);
 
