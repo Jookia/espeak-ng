@@ -21,9 +21,11 @@
 #include <stdio.h>
 
 // Gets the length of a data file
+// If the path is in the espeak-ng-data directory a bundle may be used
 int DataGetFileLength(const char *path);
 
 // Opens a read-only data file
+// If the path is in the espeak-ng-data directory a bundle may be used
 FILE *DataFopen(const char *path);
 
 // Maps a data file as read-only memory

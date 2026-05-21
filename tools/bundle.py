@@ -52,6 +52,7 @@ def find_bundle_files(data_dir):
         for file in files:
             filename = os.path.join(root, file)
             relative_name = filename[len(data_dir) + 1:]
+            relative_name = relative_name.replace('\\', '/')
             bundle_files.append(relative_name)
 
     # Sort files to aid in reproducibility

@@ -15,6 +15,7 @@ add_library(espeak-ng
   compiledict.c
 
   data.c
+  bundle.c
   dictionary.c
   encoding.c
   intonation.c

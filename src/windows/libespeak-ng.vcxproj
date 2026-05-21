@@ -168,6 +168,7 @@
     <ClCompile Include="..\ucd-tools\src\proplist.c" />
     <ClCompile Include="..\ucd-tools\src\scripts.c" />
     <ClCompile Include="..\ucd-tools\src\tostring.c" />
+    <ClCompile Include="..\libespeak-ng\bundle.c" />
     <ClCompile Include="..\libespeak-ng\compiledata.c" />
     <ClCompile Include="..\libespeak-ng\compiledict.c" />
     <ClCompile Include="..\libespeak-ng\compilembrola.c" />

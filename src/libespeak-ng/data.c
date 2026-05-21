@@ -17,11 +17,44 @@
 
 #include "config.h"
 
+#include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 
 #include "common.h"
 #include "data.h"
+#include "bundle.h"
+#include "speech.h" // for path_home
+
+// Warning: This uses a static buffer, copy the result if needed
+static const char *PathToBundleName(const char *path)
+{
+	static char buf[64];
+
+	int home_len = strlen(path_home);
+	if (strncmp(path, path_home, home_len) != 0)
+		return NULL;
+
+	const char *bundle_name = path + home_len;
+	if (bundle_name[0] != PATHSEP)
+		return NULL;
+
+	bundle_name = bundle_name + 1; // Skip separator
+
+	if (strlen(bundle_name) > sizeof(buf))
+		return NULL;
+
+	char *bufpos = buf;
+	do {
+		if (*bundle_name == PATHSEP)
+			*bufpos++ = '/';
+		else
+			*bufpos++ = *bundle_name;
+	} while (*bundle_name++ != '\0');
+	*bufpos = '\0';
+
+	return buf;
+}
 
 static espeak_ng_STATUS FileMemoryMap(const char *path, size_t *size, const void **ptr)
 {
@@ -58,21 +91,36 @@ static espeak_ng_STATUS FileMemoryMap(const char *path, size_t *size, const void
 
 int DataGetFileLength(const char *path)
 {
-	return GetFileLength(path);
+	const char *bundle_name = PathToBundleName(path);
+	if (BundleInUse() && bundle_name)
+		return BundleGetFileLength(bundle_name);
+	else
+		return GetFileLength(path);
 }
 
 FILE *DataFopen(const char *path)
 {
-	return fopen(path, "rb");
+	const char *bundle_name = PathToBundleName(path);
+	if (BundleInUse() && bundle_name)
+		return BundleFopen(bundle_name);
+	else
+		return fopen(path, "rb");
 }
 
 espeak_ng_STATUS DataMemoryMap(const char *path, size_t *size, const void **ptr)
 {
-	return FileMemoryMap(path, size, ptr);
+	const char *bundle_name = PathToBundleName(path);
+	if (BundleInUse() && bundle_name)
+		return BundleMemoryMap(bundle_name, size, ptr);
+	else
+		return FileMemoryMap(path, size, ptr);
 }
 
 void DataMemoryFree(const void **ptr)
 {
+	if (BundleInUse())
+		return;
+
 	free((void*)*ptr);
 	*ptr = NULL;
 }
