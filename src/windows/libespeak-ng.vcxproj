@@ -170,6 +170,7 @@
     <ClCompile Include="..\libespeak-ng\compiledata.c" />
     <ClCompile Include="..\libespeak-ng\compiledict.c" />
     <ClCompile Include="..\libespeak-ng\compilembrola.c" />
+    <ClCompile Include="..\libespeak-ng\data.c" />
     <ClCompile Include="..\libespeak-ng\dictionary.c" />
     <ClCompile Include="..\libespeak-ng\encoding.c" />
     <ClCompile Include="..\libespeak-ng\error.c" />

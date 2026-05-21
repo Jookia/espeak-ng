@@ -40,6 +40,7 @@
 
 
 #include "common.h"
+#include "data.h"
 #include "phoneme.h"
 #include "voice.h"
 #include "speech.h"
@@ -151,10 +152,10 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 
 	// read eSpeak's mbrola phoneme translation data, eg. en1_phtrans
 	sprintf(path, "%s/mbrola_ph/%s", path_home, phtrans);
-	size = GetFileLength(path);
+	size = DataGetFileLength(path);
 	if (size < 0) // size == -errno
 		return -size;
-	if ((f_in = fopen(path, "rb")) == NULL) {
+	if ((f_in = DataFopen(path)) == NULL) {
 		int error = errno;
 		close_MBR();
 		return error;

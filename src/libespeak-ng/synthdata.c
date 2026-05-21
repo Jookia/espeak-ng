@@ -32,7 +32,7 @@
 #include <espeak-ng/encoding.h>
 
 #include "synthdata.h"
-#include "common.h"                    // for GetFileLength
+#include "data.h"                     // for DataGetFileLength, DataFopen
 #include "error.h"                    // for create_file_error_context, crea...
 #include "phoneme.h"                  // for PHONEME_TAB, PHONEME_TAB_LIST
 #include "speech.h"                   // for path_home, PATHSEP
@@ -72,11 +72,11 @@ static espeak_ng_STATUS ReadPhFile(const void **ptr, const char *fname, int *siz
 	char buf[sizeof(path_home)+40];
 
 	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
-	length = GetFileLength(buf);
+	length = DataGetFileLength(buf);
 	if (length < 0) // length == -errno
 		return create_file_error_context(context, -length, buf);
 
-	if ((f_in = fopen(buf, "rb")) == NULL)
+	if ((f_in = DataFopen(buf)) == NULL)
 		return create_file_error_context(context, errno, buf);
 
 	if (*ptr != NULL) {

@@ -32,7 +32,8 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "common.h"                // for GetFileLength, strncpy0
+#include "common.h"                // for strncpy0
+#include "data.h"                  // for DataGetFileLength, DataFopen
 #include "dictionary.h"
 #include "numbers.h"                       // for LookupAccentedLetter, Look...
 #include "phoneme.h"                       // for PHONEME_TAB, phVOWEL, phon...
@@ -212,14 +213,14 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	// bytes 0-3:  offset to rules data
 	// bytes 4-7:  number of hash table entries
 	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
-	size = GetFileLength(fname);
+	size = DataGetFileLength(fname);
 
 	if (tr->data_dictlist != NULL) {
 		free((void*)tr->data_dictlist);
 		tr->data_dictlist = NULL;
 	}
 
-	f = fopen(fname, "rb");
+	f = DataFopen(fname);
 	if ((f == NULL) || (size <= 0)) {
 		if (no_error == 0)
 			fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);

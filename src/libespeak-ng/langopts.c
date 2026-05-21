@@ -38,6 +38,7 @@
 #include "speech.h"                    // for path_home, PATHSEP
 #include "synthdata.h"                    // for n_tunes, tunes
 #include "voice.h"                    // for ReadNumbers, Read8Numbers, ...
+#include "data.h"                   // for DataFopen
 
 static int CheckTranslator(Translator *tr, const MNEM_TAB *keyword_tab, int key);
 static int LookupTune(const char *name);
@@ -187,7 +188,7 @@ void LoadConfig(void) {
 	char string[200];
 
 	sprintf(buf, "%s%c%s", path_home, PATHSEP, "config");
-	if ((f = fopen(buf, "r")) == NULL)
+	if ((f = DataFopen(buf)) == NULL)
 		return;
 
 	while (fgets(buf, sizeof(buf), f) != NULL) {

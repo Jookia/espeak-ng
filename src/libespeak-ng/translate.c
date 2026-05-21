@@ -34,6 +34,7 @@
 
 #include "translate.h"
 #include "common.h"
+#include "data.h"                 // for DataMemoryFree
 #include "dictionary.h"           // for TranslateRules, LookupDictList, Cha...
 #include "phoneme.h"              // for phonSWITCH, PHONEME_TAB, phonPAUSE_...
 #include "phonemelist.h"          // for MakePhonemeList
