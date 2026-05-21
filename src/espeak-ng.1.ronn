@@ -106,6 +106,9 @@ or text is spoken from stdin, read separately one line by line at a time.
   * `--path=<path>`:
     Specifies the directory containing the espeak-ng-data directory.
 
+  * `--bundle=<filename>`:
+    Specifies a data bundle to use instead of the espeak-ng-data directory.
+
   * `--pho`:
     Write mbrola phoneme data (.pho) to stdout or to the file in --phonout.
 

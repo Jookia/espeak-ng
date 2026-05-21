@@ -102,6 +102,8 @@ static const char *help_text =
     "--ipa      Write phonemes to stdout using International Phonetic Alphabet\n"
     "--path=\"<path>\"\n"
     "\t   Specifies the directory containing the espeak-ng-data directory\n"
+    "--bundle=\"<filename>\"\n"
+    "\t   Specifies a data bundle to use instead of the espeak-ng-data directory\n"
     "--pho      Write mbrola phoneme data (.pho) to stdout or to the file in --phonout\n"
     "--phonout=\"<filename>\"\n"
     "\t   Write phoneme output from -x -X --ipa and --pho to this file\n"
@@ -134,6 +136,121 @@ unsigned int wavefile_count = 0;
 FILE *f_wavfile = NULL;
 char filetype[5];
 char wavefile[200];
+
+#ifdef _WIN32
+
+#include <windows.h>
+
+HANDLE bundlehandle;
+HANDLE bundlemapping;
+
+const void* LoadBundleFile(const char* bundlefile, size_t *size)
+{
+	bundlehandle = CreateFileA(
+		bundlefile,
+		GENERIC_READ,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_READONLY,
+		NULL);
+	if (bundlehandle == INVALID_HANDLE_VALUE) {
+		DWORD err = GetLastError();
+		fprintf(stderr, "Can't open bundle: error 0x%x\n", err);
+		return NULL;
+	}
+
+	size_t bundlesize = GetFileSize(bundlehandle, NULL);
+	if (bundlesize == INVALID_FILE_SIZE)  {
+		DWORD err = GetLastError();
+		fprintf(stderr, "Can't read bundle size: error 0x%x\n", err);
+		return NULL;
+	}
+
+	bundlemapping = CreateFileMappingA(
+		bundlehandle,
+		NULL, PAGE_READONLY,
+		0, 0,
+		NULL);
+	if (bundlemapping == NULL) {
+		DWORD err = GetLastError();
+		fprintf(stderr, "Can't map bundle: error 0x%x\n", err);
+		CloseHandle(bundlehandle);
+		return NULL;
+	}
+
+	const void *mem = MapViewOfFile(
+		bundlemapping,
+		FILE_MAP_READ,
+		0, 0,
+		0);
+	if (mem == NULL) {
+		DWORD err = GetLastError();
+		fprintf(stderr, "Can't map view bundle: error 0x%x\n", err);
+		CloseHandle(bundlemapping);
+		CloseHandle(bundlehandle);
+		return NULL;
+	}
+
+	*size = bundlesize;
+
+	return mem;
+}
+
+void CloseBundleFile(const void *mem)
+{
+	UnmapViewOfFile(mem);
+	CloseHandle(bundlemapping);
+	CloseHandle(bundlehandle);
+}
+
+#else
+
+#include <sys/fcntl.h>
+#include <sys/unistd.h>
+#include <sys/mman.h>
+
+int bundlefd = 0;
+size_t bundlelen = 0;
+
+const void* LoadBundleFile(const char* bundlefile, size_t *size)
+{
+	int fd = open(bundlefile, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr, "Couldn't open bundle: %s\n", strerror(errno));
+		close(fd);
+		return NULL;
+	}
+
+	bundlelen = lseek(fd, 0, SEEK_END);
+	if (bundlelen == -1) {
+		fprintf(stderr, "Couldn't seek bundle: %s\n", strerror(errno));
+		close(fd);
+		return NULL;
+	}
+
+	const void *mem = mmap(0, bundlelen, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (mem == NULL) {
+		fprintf(stderr, "Couldn't mmap bundle: %s\n", strerror(errno));
+		close(fd);
+		return NULL;
+	}
+
+	*size = bundlelen;
+
+	return mem;
+}
+
+void CloseBundleFile(const void *mem)
+{
+	int ret = munmap((void*)mem, bundlelen);
+	close(bundlefd);
+
+	if (ret == -1)
+		fprintf(stderr, "Couldn't munmap bundle: %s\n", strerror(errno));
+}
+
+#endif
 
 static void DisplayVoices(FILE *f_out, char *language)
 {
@@ -334,6 +451,7 @@ int main(int argc, char **argv)
 		{ "compile-phonemes", optional_argument, 0, 0x110 },
 		{ "load",    no_argument,       0, 0x111 },
 		{ "ssml-break", required_argument, 0, 0x112 },
+		{ "bundle",  required_argument, 0, 0x113 },
 		{ 0, 0, 0, 0 }
 	};
 
@@ -364,6 +482,8 @@ int main(int argc, char **argv)
 	int phoneme_options = 0;
 	int option_linelength = 0;
 	int option_waveout = 0;
+	int option_bundle = 0;
+	int option_voices = 0;
 	int ssml_break = -1;
 	bool deterministic = 0;
 	
@@ -371,14 +491,18 @@ int main(int argc, char **argv)
 	char filename[200];
 	char voicename[40];
 	char devicename[200];
+	char bundlefile[200];
 	#define N_PUNCTLIST 100
 	wchar_t option_punctlist[N_PUNCTLIST];
 
 	voicename[0] = 0;
 	wavefile[0] = 0;
 	filename[0] = 0;
+	bundlefile[0] = 0;
 	devicename[0] = 0;
 	option_punctlist[0] = 0;
+
+	const void *bundlemem = NULL;
 
 	while (true) {
 		c = getopt_long(argc, argv, "a:b:Dd:f:g:hk:l:mp:P:qs:v:w:xXz",
@@ -483,9 +607,8 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 0x104: // --voices
-			espeak_Initialize(AUDIO_OUTPUT_SYNCHRONOUS, 0, data_path, 0);
-			DisplayVoices(stdout, optarg2);
-			exit(0);
+			option_voices = 1;
+			break;
 		case 0x106: // -- split
 			if (optarg2 == NULL)
 				samples_split_seconds = 30 * 60; // default 30 minutes
@@ -593,9 +716,32 @@ int main(int argc, char **argv)
 		case 0x112: // --ssml-break
 			ssml_break = atoi(optarg2);
 			break;
+		case 0x113: // --bundle
+			option_bundle = 1;
+			strncpy0(bundlefile, optarg2, sizeof(bundlefile));
+			break;
 		default:
 			exit(0);
 		}
+	}
+
+	if (option_bundle) {
+		size_t size;
+		bundlemem = LoadBundleFile(bundlefile, &size);
+		if (bundlemem == NULL) {
+			fprintf(stderr, "Failed to load bundle %s\n", bundlefile);
+			exit(1);
+		}
+		if (espeak_ng_SetBundle(bundlemem, size) != ENS_OK) {
+			fprintf(stderr, "Failed to set bundle %s\n", bundlefile);
+			exit(1);
+		}
+	}
+
+	if (option_voices) {
+		espeak_Initialize(AUDIO_OUTPUT_SYNCHRONOUS, 0, data_path, 0);
+		DisplayVoices(stdout, optarg2);
+		exit(0);
 	}
 
 	espeak_ng_InitializePath(data_path);
@@ -797,5 +943,9 @@ int main(int argc, char **argv)
 
 	CloseWavFile();
 	espeak_ng_Terminate();
+
+	if (option_bundle)
+		CloseBundleFile(bundlemem);
+
 	return 0;
 }
