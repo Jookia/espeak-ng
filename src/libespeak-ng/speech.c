@@ -50,6 +50,7 @@
 
 #include "speech.h"
 #include "common.h"               // for GetFileLength
+#include "bundle.h"               // for BundleLock
 #include "dictionary.h"           // for GetTranslatedPhonemeString, strncpy0
 #include "espeak_command.h"       // for delete_espeak_command, SetParameter
 #include "event.h"                // for event_declare, event_clear_all, eve...
@@ -364,6 +365,8 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *con
 {
 	int param;
 	int srate = 22050; // default sample rate 22050 Hz
+
+	BundleLock(true);
 
 	// It seems that the wctype functions don't work until the locale has been set
 	// to something other than the default "C".  Then, not only Latin1 but also the
@@ -954,6 +957,8 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Terminate(void)
 	}
 
 	WavegenFini();
+
+	BundleLock(false);
 
 	return ENS_OK;
 }

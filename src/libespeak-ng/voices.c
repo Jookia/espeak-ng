@@ -42,6 +42,7 @@
 #include "voice.h"                    // for voice_t, DoVoiceChange, N_PEAKS
 #include "common.h"                    // for strncpy0
 #include "data.h"                     // for DataFopen, DataGetFileLength
+#include "bundle.h"                   // for BundleInUse, BundleReadNext
 #include "dictionary.h"               // for LoadDictionary
 #include "langopts.h"                 // for LoadLanguageOptions
 #include "mnemonics.h"               // for LookupMnemName, MNEM_TAB
@@ -1203,6 +1204,23 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 static void GetVoices(const char *path, int len_path_voices, int is_language_file)
 {
 	char fname[sizeof(path_home)+100];
+
+	if (BundleInUse()) {
+		size_t home_len = strlen(path_home);
+		const char *subpath = path + home_len + 1; // "voice" or "lang"
+		size_t subpath_len = strlen(subpath);
+
+		struct bundle_entry entry = {0};
+		while (BundleReadNext(&entry)) {
+			// If the entry starts with our subpath, add it
+			if (strncmp((const char*)entry.name, subpath, subpath_len) == 0) {
+				sprintf(fname, "%s%c%s", path_home, PATHSEP, entry.name);
+				AddToVoicesList(fname, len_path_voices, is_language_file);
+			}
+		}
+
+		return;
+	}
 
 #if PLATFORM_WINDOWS
 	WIN32_FIND_DATAA FindFileData;
