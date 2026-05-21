@@ -32,7 +32,7 @@
 #include <espeak-ng/encoding.h>
 
 #include "synthdata.h"
-#include "data.h"                     // for DataGetFileLength, DataFopen
+#include "data.h"                     // for DataMemoryMap, DataMemoryFree
 #include "error.h"                    // for create_file_error_context, crea...
 #include "phoneme.h"                  // for PHONEME_TAB, PHONEME_TAB_LIST
 #include "speech.h"                   // for path_home, PATHSEP
@@ -67,43 +67,20 @@ static espeak_ng_STATUS ReadPhFile(const void **ptr, const char *fname, int *siz
 {
 	if (!ptr) return EINVAL;
 
-	FILE *f_in;
-	int length;
+	if (*ptr != NULL)
+		DataMemoryFree(ptr);
+
+	size_t length;
 	char buf[sizeof(path_home)+40];
-
 	sprintf(buf, "%s%c%s", path_home, PATHSEP, fname);
-	length = DataGetFileLength(buf);
-	if (length < 0) // length == -errno
-		return create_file_error_context(context, -length, buf);
 
-	if ((f_in = DataFopen(buf)) == NULL)
-		return create_file_error_context(context, errno, buf);
+	espeak_ng_STATUS err = DataMemoryMap(buf, &length, ptr);
+	if (err != ENS_OK)
+		return create_file_error_context(context, err, buf);
 
-	if (*ptr != NULL) {
-		free((void*)*ptr);
-		*ptr = NULL;
-	}
-	
-	if (length == 0) {
-		*ptr = NULL;
-		return 0;
-	}
-
-	if ((*ptr = malloc(length)) == NULL) {
-		fclose(f_in);
-		return ENOMEM;
-	}
-	if (fread((char*)*ptr, 1, length, f_in) != length) {
-		int error = errno;
-		fclose(f_in);
-		free((void*)*ptr);
-		*ptr = NULL;
-		return create_file_error_context(context, error, buf);
-	}
-
-	fclose(f_in);
 	if (size != NULL)
 		*size = length;
+
 	return ENS_OK;
 }
 
@@ -166,14 +143,10 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 
 void FreePhData(void)
 {
-	free((void*)phoneme_tab_data);
-	free((void*)phoneme_index);
-	free((void*)phondata_ptr);
-	free((void*)tunes);
-	phoneme_tab_data = NULL;
-	phoneme_index = NULL;
-	phondata_ptr = NULL;
-	tunes = NULL;
+	DataMemoryFree((const void**)&phoneme_tab_data);
+	DataMemoryFree((const void**)&phoneme_index);
+	DataMemoryFree((const void**)&phondata_ptr);
+	DataMemoryFree((const void**)&tunes);
 	current_phoneme_table = -1;
 }
 

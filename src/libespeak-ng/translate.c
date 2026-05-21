@@ -118,7 +118,7 @@ void DeleteTranslator(Translator *tr)
 	if (!tr) return;
 
 	if (tr->data_dictlist != NULL)
-		free((void*)tr->data_dictlist);
+		DataMemoryFree((const void**)&tr->data_dictlist);
 	free(tr);
 }
 

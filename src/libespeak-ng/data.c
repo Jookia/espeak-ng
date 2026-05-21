@@ -17,8 +17,44 @@
 
 #include "config.h"
 
+#include <stdlib.h>
+#include <errno.h>
+
 #include "common.h"
 #include "data.h"
+
+static espeak_ng_STATUS FileMemoryMap(const char *path, size_t *size, const void **ptr)
+{
+	int length = GetFileLength(path);
+	if (length < 0)
+		return (espeak_ng_STATUS)-length; // -length is error
+	else if (length == 0)
+		return ENS_UNEXPECTED_EOF;
+
+	void *mem = malloc(length);
+	if (mem == NULL)
+		return (espeak_ng_STATUS)errno;
+
+	FILE *file = fopen(path, "rb");
+	if (file == NULL) {
+		free(mem);
+		return (espeak_ng_STATUS)errno;
+	}
+
+	size_t read = fread(mem, length, 1, file);
+	fclose(file);
+
+	if (read != 1) {
+		free(mem);
+		return ENS_UNEXPECTED_EOF;
+	}
+
+	// Only update target variables on success
+	*ptr = mem;
+	*size = length;
+
+	return ENS_OK;
+}
 
 int DataGetFileLength(const char *path)
 {
@@ -28,4 +64,15 @@ int DataGetFileLength(const char *path)
 FILE *DataFopen(const char *path)
 {
 	return fopen(path, "rb");
+}
+
+espeak_ng_STATUS DataMemoryMap(const char *path, size_t *size, const void **ptr)
+{
+	return FileMemoryMap(path, size, ptr);
+}
+
+void DataMemoryFree(const void **ptr)
+{
+	free((void*)*ptr);
+	*ptr = NULL;
 }

@@ -33,7 +33,7 @@
 #include <espeak-ng/encoding.h>
 
 #include "common.h"                // for strncpy0
-#include "data.h"                  // for DataGetFileLength, DataFopen
+#include "data.h"                  // for DataMemoryMap, DataMemoryFree
 #include "dictionary.h"
 #include "numbers.h"                       // for LookupAccentedLetter, Look...
 #include "phoneme.h"                       // for PHONEME_TAB, phVOWEL, phon...
@@ -200,8 +200,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	const char *p;
 	int *pw;
 	int length;
-	FILE *f;
-	int size;
+	size_t size;
 	char fname[sizeof(path_home)+20];
 
 	if (dictionary_name != name)
@@ -213,28 +212,14 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	// bytes 0-3:  offset to rules data
 	// bytes 4-7:  number of hash table entries
 	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
-	size = DataGetFileLength(fname);
 
-	if (tr->data_dictlist != NULL) {
-		free((void*)tr->data_dictlist);
-		tr->data_dictlist = NULL;
-	}
-
-	f = DataFopen(fname);
-	if ((f == NULL) || (size <= 0)) {
+	DataMemoryFree((const void**)&tr->data_dictlist);
+	espeak_ng_STATUS err = DataMemoryMap(fname, &size, (const void**)&tr->data_dictlist);
+	if (err != ENS_OK) {
 		if (no_error == 0)
 			fprintf(stderr, "Can't read dictionary file: '%s'\n", fname);
-		if (f != NULL)
-			fclose(f);
 		return 1;
 	}
-
-	if ((tr->data_dictlist = malloc(size)) == NULL) {
-		fclose(f);
-		return 3;
-	}
-	size = fread((char*)tr->data_dictlist, 1, size, f);
-	fclose(f);
 
 	pw = (int *)(tr->data_dictlist);
 	length = Reverse4Bytes(pw[1]);

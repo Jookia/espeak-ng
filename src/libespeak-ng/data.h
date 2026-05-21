@@ -26,4 +26,11 @@ int DataGetFileLength(const char *path);
 // Opens a read-only data file
 FILE *DataFopen(const char *path);
 
+// Maps a data file as read-only memory
+// Free it with DataMemoryFree
+espeak_ng_STATUS DataMemoryMap(const char *path, size_t *size, const void **ptr);
+
+// Frees a mapping made with DataMemoryMap
+void DataMemoryFree(const void **ptr);
+
 #endif
