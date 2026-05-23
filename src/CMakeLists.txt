@@ -19,9 +19,7 @@ set_target_properties(
 if (MINGW)
   target_link_options(espeak-ng-bin PRIVATE "-static-libstdc++" "-static")
 endif()
-if (MSVC)
-  target_sources(espeak-ng-bin PRIVATE compat/getopt.c)
-endif()
+target_sources(espeak-ng-bin PRIVATE compat/getopt.c)
 if (NOT WIN32)
   add_custom_target(
     speak-ng ALL
