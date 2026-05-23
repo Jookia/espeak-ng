@@ -42,6 +42,7 @@
 
 #define _DIAGASSERT(x) assert(x)
 #define __UNCONST(x) (char *)(x)
+#define __UNCONST2(x) (char **)(x)
 
 #ifdef REPLACE_GETOPT
 #ifdef __weak_alias
@@ -157,7 +158,7 @@ permute_args(int panonopt_start, int panonopt_end, int opt_end, char **nargv)
 static int
 getopt_internal(int nargc, char **nargv, const char *options)
 {
-	char *oli;				/* option letter list index */
+	const char *oli;				/* option letter list index */
 	int optchar;
 
 	_DIAGASSERT(nargv != NULL);
@@ -304,7 +305,7 @@ getopt(int nargc, char * const *nargv, const char *options)
 	_DIAGASSERT(nargv != NULL);
 	_DIAGASSERT(options != NULL);
 
-	retval = getopt_internal(nargc, __UNCONST(nargv), options);
+	retval = getopt_internal(nargc, __UNCONST2(nargv), options);
 	if (retval == -2) {
 		++optind;
 		/*
@@ -313,7 +314,7 @@ getopt(int nargc, char * const *nargv, const char *options)
 		 */
 		if (nonopt_end != -1) {
 			permute_args(nonopt_start, nonopt_end, optind,
-				       __UNCONST(nargv));
+				       __UNCONST2(nargv));
 			optind -= nonopt_end - nonopt_start;
 		}
 		nonopt_start = nonopt_end = -1;
@@ -343,7 +344,7 @@ getopt_long(int nargc, char * const *nargv, const char *options,
 	_DIAGASSERT(long_options != NULL);
 	/* idx may be NULL */
 
-	retval = getopt_internal(nargc, __UNCONST(nargv), options);
+	retval = getopt_internal(nargc, __UNCONST2(nargv), options);
 	if (retval == -2) {
 		char *current_argv, *has_equal;
 		size_t current_argv_len;
@@ -363,7 +364,7 @@ getopt_long(int nargc, char * const *nargv, const char *options,
 			 */
 			if (nonopt_end != -1) {
 				permute_args(nonopt_start, nonopt_end,
-				    optind, __UNCONST(nargv));
+				    optind, __UNCONST2(nargv));
 				optind -= nonopt_end - nonopt_start;
 			}
 			nonopt_start = nonopt_end = -1;
