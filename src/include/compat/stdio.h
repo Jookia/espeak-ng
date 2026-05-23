@@ -38,4 +38,10 @@
 
 #endif
 
+#if _WIN32
+
+FILE *fmemopen(void *buf, size_t size, const char *mode);
+
+#endif
+
 #endif

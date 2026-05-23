@@ -37,6 +37,7 @@ add_library(espeak-ng
   speech.c
 
   espeak_api.c
+  ../compat/fmemopen.c
 )
 set_target_properties(
   espeak-ng PROPERTIES
